@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ideenwerkstatt Hängemattenständer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: ein technisches Formblatt – Kopfzeile mit Schriftfeld, Reiter für die vier Arbeitsschritte, darunter Rasterflächen */
+:root{
+  --paper:#eef2f1; --sheet:#ffffff; --ink:#18212b; --muted:#5b6872; --rule:#cfd8dc; --grid:#e3eaec;
+  --accent:#2350b8; --accent-soft:#e3eaf9; --amber:#b86e00; --amber-soft:#fbefd9; --ok:#1f7a4d; --bad:#b3261e;
+  --c0:#2350b8; --c1:#c0571b; --c2:#1f7a4d; --c3:#8a3fb3; --c4:#a6750b; --c5:#0f7f8c;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#11161b; --sheet:#182028; --ink:#e3e9ee; --muted:#93a1ac; --rule:#2c3843; --grid:#222c35;
+  --accent:#86a9ff; --accent-soft:#1d2b4a; --amber:#f0b04f; --amber-soft:#3a2c14; --ok:#5fcf95; --bad:#ff8a80;
+  --c0:#86a9ff; --c1:#ff9a62; --c2:#5fcf95; --c3:#cf9bf0; --c4:#e8c25a; --c5:#5bd0dc; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#11161b; --sheet:#182028; --ink:#e3e9ee; --muted:#93a1ac; --rule:#2c3843; --grid:#222c35;
+  --accent:#86a9ff; --accent-soft:#1d2b4a; --amber:#f0b04f; --amber-soft:#3a2c14; --ok:#5fcf95; --bad:#ff8a80;
+  --c0:#86a9ff; --c1:#ff9a62; --c2:#5fcf95; --c3:#cf9bf0; --c4:#e8c25a; --c5:#5bd0dc; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:16px/1.5 var(--f-body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px}
+.wrap{max-width:1180px;margin:0 auto;padding-block:20px 60px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;letter-spacing:.01em;margin:0;text-wrap:balance;line-height:1.1}
+h1{font-size:clamp(28px,5vw,40px)} h2{font-size:24px} h3{font-size:19px}
+.label{font:600 11px/1.2 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+p{margin:0;max-width:68ch}
+
+/* Schriftfeld */
+.titleblock{display:grid;grid-template-columns:1fr auto;border:1.5px solid var(--ink);background:var(--sheet)}
+.titleblock>div{padding:12px 16px;min-width:0}
+.titleblock .meta{border-left:1.5px solid var(--ink);display:grid;grid-template-columns:auto auto;gap:4px 16px;align-content:center}
+.titleblock .meta span:nth-child(odd){font:600 11px/1.6 var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.titleblock .meta span:nth-child(even){font:600 14px/1.6 var(--f-mono)}
+@media (max-width:640px){.titleblock{grid-template-columns:1fr}.titleblock .meta{border-left:0;border-top:1.5px solid var(--ink)}}
+
+.banner{padding:10px 14px;border:1px solid var(--amber);background:var(--amber-soft);color:var(--ink)}
+
+/* Reiter */
+.tabs{display:flex;gap:0;border-bottom:1.5px solid var(--ink);overflow-x:auto}
+.tab{appearance:none;border:1.5px solid transparent;border-bottom:0;background:none;color:var(--muted);
+  font:600 17px/1 var(--f-display);letter-spacing:.02em;padding:11px 16px 10px;cursor:pointer;white-space:nowrap;margin-bottom:-1.5px}
+.tab b{font:600 12px var(--f-mono);margin-right:6px;color:var(--accent)}
+.tab[aria-selected="true"]{background:var(--sheet);color:var(--ink);border-color:var(--ink)}
+.tab:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.panel{display:flex;flex-direction:column;gap:18px}
+.sheet{background:var(--sheet);border:1px solid var(--rule);padding:18px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.stack{display:flex;flex-direction:column;gap:10px}
+
+button.btn{appearance:none;font:600 14px/1 var(--f-body);padding:9px 14px;border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink);cursor:pointer}
+button.btn:hover{background:var(--accent-soft)}
+button.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--sheet)}
+button.btn.primary:hover{filter:brightness(1.08)}
+button.btn.ghost{border-color:var(--rule)}
+button.btn.small{padding:5px 9px;font-size:13px}
+button.btn:disabled{opacity:.45;cursor:not-allowed}
+button.x{appearance:none;border:0;background:none;color:var(--muted);cursor:pointer;font:600 15px/1 var(--f-mono);padding:2px 4px}
+button.x:hover{color:var(--bad)}
+input.txt,textarea.txt,select.txt{font:15px/1.4 var(--f-body);color:var(--ink);background:var(--sheet);border:1px solid var(--rule);padding:8px 10px;width:100%;min-width:0}
+textarea.txt{resize:vertical;min-height:64px}
+input.txt:focus,textarea.txt:focus{border-color:var(--accent)}
+
+/* Plätze */
+.seats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+@media (max-width:820px){.seats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:440px){.seats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.seat{border:1px solid var(--rule);background:var(--sheet);padding:10px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.seat.me{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.seat .who{display:flex;gap:8px;align-items:center;min-width:0;font-weight:600}
+.seat .who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.av{width:24px;height:24px;border-radius:50%;flex:none;background:var(--grid)}
+
+/* Rundensteuerung */
+.control{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center}
+@media (max-width:640px){.control{grid-template-columns:1fr}}
+.roundno{font:700 44px/1 var(--f-display)} .roundno small{font-size:20px;color:var(--muted)}
+.clock{font:600 34px/1 var(--f-mono);font-variant-numeric:tabular-nums}
+.clock.late{color:var(--amber)}
+.progress{display:flex;gap:4px}
+.progress i{flex:1;height:8px;background:var(--grid);border:1px solid var(--rule)}
+.progress i.done{background:var(--accent);border-color:var(--accent)}
+.progress i.now{background:var(--amber);border-color:var(--amber)}
+
+/* Formblatt 635 */
+.form635{width:100%;border-collapse:collapse;table-layout:fixed;background:var(--sheet)}
+.form635 th,.form635 td{border:1px solid var(--ink);padding:8px;vertical-align:top;text-align:left}
+.form635 thead th{font:600 11px/1.3 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--paper)}
+.form635 th.rn{width:92px}
+.form635 td{font-size:15px;min-height:60px;word-wrap:break-word}
+.form635 tr.current td{background:var(--amber-soft)}
+.form635 tr.future td{background:repeating-linear-gradient(45deg,transparent 0 6px,var(--grid) 6px 7px)}
+.form635 td textarea{border:0;background:transparent;padding:0;min-height:72px;width:100%;font:15px/1.4 var(--f-body);color:var(--ink);resize:vertical}
+.form635 td textarea:focus{outline:none}
+.form635 .rlab{font:600 13px/1.2 var(--f-mono)} .form635 .rlab small{display:block;font-weight:400;color:var(--muted);margin-top:4px;font-family:var(--f-body);font-size:12px;overflow:hidden;text-overflow:ellipsis}
+.scrollx{overflow-x:auto}
+.scrollx .form635{min-width:560px}
+.idea{display:flex;flex-direction:column;gap:6px;height:100%}
+.idea .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+.tag{font:600 11px/1 var(--f-mono);padding:4px 6px;border:1px solid var(--ok);color:var(--ok);letter-spacing:.04em}
+
+.sheets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:18px}
+
+/* Morphologischer Kasten */
+.morph{width:100%;border-collapse:collapse;background:var(--sheet);min-width:640px}
+.morph th,.morph td{border:1px solid var(--ink);padding:10px;vertical-align:top;text-align:left}
+.morph th.fn{width:220px;background:var(--paper)}
+.morph th.fn .fnname{font:600 18px/1.2 var(--f-display)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative;display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--rule);background:var(--sheet);padding:6px 8px 6px 10px;font-size:14px;max-width:100%}
+.chip .t{overflow-wrap:anywhere}
+.chip.pickable{cursor:pointer}
+.chip.pickable:hover{border-color:var(--active)}
+.chip.picked{border-color:var(--active);background:color-mix(in srgb,var(--active) 14%,var(--sheet));font-weight:600}
+.dots{display:inline-flex;gap:3px}
+.dots i{width:9px;height:9px;border-radius:50%}
+.addsol{display:flex;gap:6px;margin-top:10px}
+.addsol input{max-width:260px}
+
+.combos{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}
+.combo{border:1.5px solid var(--rule);background:var(--sheet);padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.combo.active{border-color:var(--cc);box-shadow:inset 4px 0 0 var(--cc)}
+.combo .head{display:flex;gap:8px;align-items:center}
+.combo .sw{width:14px;height:14px;border-radius:50%;background:var(--cc);flex:none}
+.combo .head strong{font:600 19px/1.1 var(--f-display);flex:1;min-width:0;overflow-wrap:anywhere}
+.combo ul{margin:0;padding:0;list-style:none;font-size:14px;display:flex;flex-direction:column;gap:3px}
+.combo li{display:grid;grid-template-columns:minmax(0,40%) 1fr;gap:8px}
+.combo li span:first-child{color:var(--muted)}
+.combo li.miss span:last-child{color:var(--amber);font-style:italic}
+
+/* Abstimmung */
+.vote{display:grid;grid-template-columns:56px 1fr auto;gap:16px;align-items:center;border:1px solid var(--rule);background:var(--sheet);padding:14px}
+@media (max-width:560px){.vote{grid-template-columns:44px 1fr}.vote .mine{grid-column:1/-1}}
+.vote .rank{font:700 34px/1 var(--f-display);color:var(--muted);text-align:center}
+.vote.lead .rank{color:var(--accent)}
+.bar{height:10px;background:var(--grid);margin-top:8px}
+.bar i{display:block;height:100%;background:var(--cc)}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper output{font:600 20px var(--f-mono);min-width:28px;text-align:center}
+.budget{display:flex;gap:6px;align-items:center}
+.budget i{width:16px;height:16px;border:1.5px solid var(--accent);border-radius:50%}
+.budget i.used{background:var(--accent)}
+
+.empty{border:1.5px dashed var(--rule);padding:22px;text-align:center;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--sheet);padding:10px 16px;font-size:14px;z-index:20;max-width:calc(100% - 32px)}
+.pop{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.pop select{max-width:220px}
+@media (prefers-reduced-motion:no-preference){.chip,.tab,button.btn{transition:background .15s,border-color .15s}}
+</style>
+<style>
+html{color-scheme:light}
+body{margin:0}
+[hidden]{display:none!important}
+.join{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.join input{max-width:280px}
+.av{display:inline-grid;place-items:center;color:#fff;font:700 11px/1 var(--f-body)}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="titleblock">
+    <div class="stack" style="gap:6px">
+      <span class="label">PEM · Hausaufgabe WS 26/27 · Thema 2</span>
+      <h1>Ideenwerkstatt Hängemattenständer</h1>
+      <p class="muted">Aufgabe 5 (Methode 635) und Aufgabe 6 (morphologischer Kasten) gemeinsam bearbeiten. Alle Eingaben sind sofort für die ganze Gruppe sichtbar.</p>
+    </div>
+    <div class="meta">
+      <span>Ich</span><span id="meName">…</span>
+      <span>Platz</span><span id="meSeat">–</span>
+      <span>Ideen</span><span id="cntIdeas">0</span>
+      <span>Konzepte</span><span id="cntCombos">0</span>
+    </div>
+  </header>
+
+  <form id="joinForm" class="sheet join" hidden>
+    <label for="joinName"><strong>Wie heißt du?</strong> Dein Name erscheint bei deinem Platz und deinen Ideen.</label>
+    <input class="txt" id="joinName" maxlength="40" placeholder="Vorname" autocomplete="given-name">
+    <button class="btn primary">Mitmachen</button>
+  </form>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-635" data-tab="635"><b>A5</b>Methode 635</button>
+    <button class="tab" role="tab" id="tab-ideen" data-tab="ideen"><b>A5</b>Alle Formblätter</button>
+    <button class="tab" role="tab" id="tab-kasten" data-tab="kasten"><b>A6</b>Morphologischer Kasten</button>
+    <button class="tab" role="tab" id="tab-vote" data-tab="vote"><b>A6</b>Abstimmung</button>
+  </nav>
+
+  <main id="view" class="panel"><div class="empty">Verbindung zur Gruppe wird aufgebaut …</div></main>
+</div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+/* ===== HIER DEINE SUPABASE-DATEN EINTRAGEN (Project Settings → API) ===== */
+const SUPABASE_URL = "https://vcgtgdsodzftrdiwnwoh.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjZ3RnZHNvZHpmdHJkaXdud29oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzUxMzMsImV4cCI6MjEwNzcxMTEzM30.aCMOJ3UiKQnYqsDVmP6M7xgC1mR8LERXn6mKPQY_bIE";
+/* ======================================================================= */
+</script>
+<script>
+(() => {
+const ROUND_MS = 5 * 60 * 1000, SEATS = 6, VOTE_BUDGET = 3;
+
+/* ---------- kleine Dokument-Datenbank auf einer Supabase-Tabelle ---------- */
+let sb = null; const rows = new Map(); const listeners = {};
+function emit(coll){ (listeners[coll]||[]).forEach(fn => fn()); }
+function docsOf(coll){ return [...rows.values()].filter(r=>r.coll===coll).map(r=>({id:r.path.split("/")[1], ...r.data})); }
+const db = {
+  doc(path){ const [coll] = path.split("/"); return {
+    async set(data){ rows.set(path,{path,coll,data}); emit(coll);
+      const { error } = await sb.from("docs").upsert({path, coll, data, updated_at:new Date().toISOString()}); if (error) throw error; },
+    async delete(){ rows.delete(path); emit(coll); const { error } = await sb.from("docs").delete().eq("path", path); if (error) throw error; },
+    async get(){ const { data, error } = await sb.from("docs").select("*").eq("path", path).maybeSingle(); if (error) throw error; return data ? data.data : null; }
+  }; },
+  collection(coll){ return {
+    async add(data){ const id = Math.random().toString(36).slice(2,10)+Date.now().toString(36); await db.doc(coll+"/"+id).set(data); return {id}; },
+    onSnapshot(fn){ (listeners[coll] ||= []).push(() => fn(docsOf(coll))); fn(docsOf(coll)); }
+  }; }
+};
+
+/* ---------- Identität ohne Account: Name + zufällige ID im Browser ---------- */
+let me = null, myName = "";
+try { me = localStorage.getItem("iw-id"); myName = localStorage.getItem("iw-name") || ""; } catch(e) {}
+if (!me){ me = "u" + Math.random().toString(36).slice(2,12); try{ localStorage.setItem("iw-id", me); }catch(e){} }
+
+const S = { state:{round:0,problem:"",endsAt:0}, seats:{}, ideas:{}, functions:[], solutions:[], combos:[], votes:{}, people:{} };
+const drafts = {}; const chains = {}; const timers = {};
+let tab = "635", activeCombo = null, sendTo = null, readOnly = false;
+try { const t = localStorage.getItem("iw-tab"); if (t) tab = t; } catch(e) {}
+if (/^#(635|ideen|kasten|vote)$/.test(location.hash)) tab = location.hash.slice(1);
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nameOf = id => id ? (id === me ? "Du" : (S.people[id]?.name || "Jemand")) : "frei";
+function hue(id){ let h=0; for (const c of String(id)) h=(h*31+c.charCodeAt(0))%360; return h; }
+const avatar = id => id ? `<span class="av" style="background:hsl(${hue(id)} 55% 42%)">${esc((S.people[id]?.name||"?").slice(0,1).toUpperCase())}</span>` : `<i class="av"></i>`;
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(timers.toast); timers.toast=setTimeout(()=>t.hidden=true,3200); }
+function onErr(e){ console.error(e); toast("Speichern hat nicht geklappt. Prüfe deine Internetverbindung."); }
+function showBanner(t){ const b=$("#banner"); b.textContent=t; b.hidden=!t; }
+function write(path, fn){ chains[path] = (chains[path]||Promise.resolve()).then(fn).catch(onErr); return chains[path]; }
+function debounced(key, ms, fn){ clearTimeout(timers[key]); timers[key]=setTimeout(fn, ms); }
+
+const mySeat = () => { for (let i=0;i<SEATS;i++) if (S.seats["s"+i]?.uid === me) return i; return null; };
+const sheetFor = (seat, round) => (seat + round - 1) % SEATS;
+const writerOf = (sheet, round) => ((sheet - (round - 1)) % SEATS + SEATS) % SEATS;
+const ideaId = (sh, r, k) => `i_${sh}_${r}_${k}`;
+const fnSorted = () => [...S.functions].sort((a,b)=>(a.order??0)-(b.order??0));
+const comboColor = i => `var(--c${i % 6})`;
+const dis = () => (readOnly || !myName) ? "disabled" : "";
+
+/* ---------- Render ---------- */
+function render(){
+  document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === tab));
+  const ae = document.activeElement;
+  const focus = ae && ae.id && ae.id !== "joinName" ? {id:ae.id, s:ae.selectionStart, e:ae.selectionEnd} : null;
+  const v = $("#view");
+  v.innerHTML = tab==="635" ? view635() : tab==="ideen" ? viewIdeen() : tab==="kasten" ? viewKasten() : viewVote();
+  if (focus){ const el=document.getElementById(focus.id); if (el){ el.focus(); try{ el.setSelectionRange(focus.s, focus.e); }catch(e){} } }
+  const seat = mySeat();
+  $("#joinForm").hidden = !!myName;
+  $("#meName").textContent = myName || "noch kein Name";
+  $("#meSeat").textContent = seat==null ? "–" : String(seat+1);
+  $("#cntIdeas").textContent = Object.values(S.ideas).filter(i=>i.text && i.text.trim()).length;
+  $("#cntCombos").textContent = S.combos.length;
+  tick();
+}
+
+function view635(){
+  const st = S.state, r = st.round||0, seat = mySeat();
+  let h = `<section class="sheet stack">
+    <span class="label">Problemstellung (lösungsneutral)</span>
+    ${r===0 && !dis() ? `<textarea class="txt" id="problem" rows="3" placeholder="Wie kann …?">${esc(drafts.problem ?? st.problem)}</textarea>
+      <p class="muted" style="font-size:14px">Kann nur vor Runde 1 geändert werden. Bitte so formulieren, dass keine Lösung vorgegeben ist.</p>`
+      : `<p style="font-size:18px">${esc(st.problem) || '<span class="muted">Noch keine Problemstellung eingetragen.</span>'}</p>`}
+  </section>`;
+
+  h += `<section class="stack"><div class="row" style="justify-content:space-between"><h2>Sitzordnung</h2>
+    <span class="muted" style="font-size:14px">Jede Person nimmt einen Platz. Das Formblatt wandert pro Runde einen Platz weiter.</span></div><div class="seats">`;
+  for (let i=0;i<SEATS;i++){
+    const uid = S.seats["s"+i]?.uid || null, isMe = uid && uid===me;
+    h += `<div class="seat ${isMe?"me":""}"><span class="label">Platz ${i+1}</span>
+      <div class="who">${avatar(uid)}<span>${esc(nameOf(uid))}</span></div>
+      ${isMe ? `<button class="btn small ghost" data-act="leave" ${dis()}>Platz freigeben</button>`
+        : !uid ? `<button class="btn small" data-act="seat" data-i="${i}" ${dis()}>Hier sitzen</button>` : `<span class="muted" style="font-size:13px">besetzt</span>`}
+    </div>`;
+  }
+  h += `</div></section>`;
+
+  const prog = Array.from({length:6},(_,k)=>`<i class="${k+1<r?"done":k+1===r?"now":""}"></i>`).join("");
+  h += `<section class="sheet control">
+    <div><span class="label">Runde</span><div class="roundno">${r===0?"–":r>6?"6":r}<small> / 6</small></div></div>
+    <div class="stack" style="gap:8px"><div class="progress">${prog}</div>
+      <div class="row"><span class="label">Restzeit</span><span class="clock" id="clock">5:00</span></div></div>
+    <div class="row">
+      ${r===0 ? `<button class="btn primary" data-act="start" ${dis()}>Runde 1 starten</button>`
+       : r<6 ? `<button class="btn primary" data-act="next" ${dis()}>Runde ${r+1} starten</button>`
+       : r===6 ? `<button class="btn primary" data-act="finish" ${dis()}>635 abschließen</button>` : ""}
+      ${r>0 ? `<button class="btn ghost" data-act="reset" ${dis()}>Zurück auf Start</button>`:""}
+    </div>
+  </section>`;
+  if (sendTo === "reset") h += `<div class="banner row" style="justify-content:space-between"><span>Runden zurücksetzen? Geschriebene Ideen bleiben erhalten.</span>
+    <span class="row"><button class="btn small" data-act="resetYes">Ja, zurücksetzen</button><button class="btn small ghost" data-act="cancel">Abbrechen</button></span></div>`;
+
+  if (r===0){
+    h += `<section class="sheet stack"><h3>So läuft die Methode 635</h3>
+      <p>6 Personen schreiben je 3 Ideen in 5 Minuten. Danach wandert das Formblatt zum nächsten Platz, und man baut auf den Ideen der Vorgänger auf oder schreibt neue. Nach 6 Runden stehen bis zu 108 Ideen auf den Blättern.</p>
+      <p class="muted">Regeln: keine Kritik, Quantität vor Qualität, Ideen anderer weiterdenken ist ausdrücklich erwünscht. Eine Person moderiert und startet die Runden.</p></section>`;
+  } else if (r>6){
+    h += `<section class="sheet stack"><h3>Die Methode 635 ist abgeschlossen</h3>
+      <p>Unter „Alle Formblätter“ seht ihr alle Ideen. Von dort lassen sich gute Ideen direkt als Lösung in den morphologischen Kasten übernehmen.</p>
+      <div class="row"><button class="btn primary" data-goto="ideen">Zu den Formblättern</button></div></section>`;
+  } else if (seat==null){
+    h += `<div class="empty">Nimm oben einen Platz, um dein aktuelles Formblatt zu sehen.</div>`;
+  } else {
+    const sh = sheetFor(seat, r);
+    h += `<section class="stack"><div class="row" style="justify-content:space-between"><h2>Dein Formblatt: Blatt ${sh+1}</h2>
+      <span class="muted" style="font-size:14px">Wird automatisch gespeichert.</span></div>${sheetTable(sh, r, true)}</section>`;
+  }
+  return h;
+}
+
+function sheetTable(sh, uptoRound, editable){
+  let h = `<div class="scrollx"><table class="form635"><thead><tr><th class="rn">Runde</th><th>Idee 1</th><th>Idee 2</th><th>Idee 3</th></tr></thead><tbody>`;
+  for (let r=1;r<=6;r++){
+    const w = writerOf(sh, r), uid = S.seats["s"+w]?.uid;
+    const cur = editable && r===uptoRound, fut = editable && r>uptoRound;
+    h += `<tr class="${cur?"current":fut?"future":""}"><th class="rn"><span class="rlab">${r}<small>Platz ${w+1} · ${esc(uid?nameOf(uid):"–")}</small></span></th>`;
+    for (let k=0;k<3;k++){
+      const id = ideaId(sh,r,k), d = S.ideas[id];
+      if (cur) h += `<td><textarea id="in-${id}" data-idea="${id}" data-sh="${sh}" data-r="${r}" data-k="${k}" placeholder="Idee ${k+1} …" ${dis()}>${esc(drafts[id] ?? d?.text ?? "")}</textarea></td>`;
+      else if (fut) h += `<td></td>`;
+      else h += `<td>${ideaCell(id, d, !editable)}</td>`;
+    }
+    h += `</tr>`;
+  }
+  return h + `</tbody></table></div>`;
+}
+
+function ideaCell(id, d, withActions){
+  if (!d || !d.text || !d.text.trim()) return `<span class="muted">–</span>`;
+  const used = S.solutions.some(s=>s.fromIdea===id);
+  let acts = "";
+  if (withActions){
+    if (sendTo === id){
+      const fns = fnSorted();
+      acts = fns.length ? `<div class="pop"><select class="txt" id="sel-${id}">${fns.map(f=>`<option value="${esc(f.id)}">${esc(f.name)}</option>`).join("")}</select>
+        <button class="btn small primary" data-act="sendYes" data-id="${id}">Übernehmen</button><button class="btn small ghost" data-act="cancel">×</button></div>`
+        : `<span class="muted" style="font-size:13px">Lege zuerst Teilfunktionen im Kasten an.</span>`;
+    } else acts = `<button class="btn small ghost" data-act="send" data-id="${id}" ${dis()}>In den Kasten</button>`;
+  }
+  return `<div class="idea"><span>${esc(d.text)}</span><div class="acts">${used?`<span class="tag">IM KASTEN</span>`:""}${acts}</div></div>`;
+}
+
+function viewIdeen(){
+  const any = Object.values(S.ideas).some(i=>i.text && i.text.trim());
+  let h = `<section class="row" style="justify-content:space-between"><h2>Alle sechs Formblätter</h2>
+    <p class="muted" style="font-size:14px">Für die Doku: Ideen clustern und die besten mit „In den Kasten“ einer Teilfunktion zuordnen.</p></section>`;
+  if (!any) return h + `<div class="empty">Noch keine Ideen. Sie erscheinen hier, sobald die erste Runde der Methode 635 läuft.</div>`;
+  h += `<div class="sheets-grid">`;
+  for (let sh=0;sh<SEATS;sh++) h += `<section class="stack"><h3>Blatt ${sh+1}</h3>${sheetTable(sh, 7, false)}</section>`;
+  return h + `</div>`;
+}
+
+function viewKasten(){
+  const fns = fnSorted();
+  const ac = S.combos.find(c=>c.id===activeCombo);
+  const acIdx = ac ? S.combos.indexOf(ac) : -1;
+  let h = `<section class="row" style="justify-content:space-between"><h2>Morphologischer Kasten</h2>
+    <p class="muted" style="font-size:14px">Zeilen sind Teilfunktionen aus der Funktionsstruktur (A4), in jeder Zeile stehen Lösungsprinzipien.</p></section>`;
+  if (ac) h += `<div class="banner row" style="justify-content:space-between;border-color:${comboColor(acIdx)}">
+    <span>Du stellst <strong>${esc(ac.name)}</strong> zusammen: Klicke pro Zeile auf genau eine Lösung.</span>
+    <button class="btn small" data-act="comboDone">Fertig</button></div>`;
+  h += `<div class="scrollx" style="--active:${ac?comboColor(acIdx):"var(--accent)"}"><table class="morph"><thead><tr><th class="fn"><span class="label">Teilfunktion</span></th><th><span class="label">Lösungsprinzipien</span></th></tr></thead><tbody>`;
+  if (!fns.length) h += `<tr><td colspan="2"><div class="empty">Noch keine Teilfunktionen. Füge unten die erste hinzu.</div></td></tr>`;
+  for (const f of fns){
+    const sols = S.solutions.filter(s=>s.fn===f.id);
+    h += `<tr><th class="fn"><div class="row" style="justify-content:space-between;flex-wrap:nowrap;align-items:flex-start">
+      <input class="txt fnname" id="fn-${esc(f.id)}" data-fn="${esc(f.id)}" value="${esc(drafts["fn-"+f.id] ?? f.name)}" ${dis()} style="border:0;background:transparent;padding:0;font:600 18px/1.2 var(--f-display)">
+      <button class="x" title="Teilfunktion löschen" data-act="delFn" data-id="${esc(f.id)}" ${dis()}>×</button></div>
+      ${sendTo==="delFn-"+f.id ? `<div class="stack" style="gap:6px;margin-top:8px"><span style="font-size:13px">Zeile mit ${sols.length} Lösung(en) löschen?</span><span class="row"><button class="btn small" data-act="delFnYes" data-id="${esc(f.id)}">Löschen</button><button class="btn small ghost" data-act="cancel">Nein</button></span></div>`:""}
+      </th><td><div class="chips">`;
+    for (const s of sols){
+      const picked = ac && ac.picks?.[f.id]===s.id;
+      const dots = S.combos.map((c,i)=>c.picks?.[f.id]===s.id?`<i style="background:${comboColor(i)}" title="${esc(c.name)}"></i>`:"").join("");
+      h += `<span class="chip ${ac?"pickable":""} ${picked?"picked":""}" ${ac?`data-act="pick" data-fn="${esc(f.id)}" data-sol="${esc(s.id)}" role="button" tabindex="0"`:""}>
+        <span class="t">${esc(s.text)}</span>${dots?`<span class="dots">${dots}</span>`:""}
+        ${!ac?`<button class="x" title="Lösung löschen" data-act="delSol" data-id="${esc(s.id)}" ${dis()}>×</button>`:""}</span>`;
+    }
+    if (!sols.length) h += `<span class="muted" style="font-size:14px">Noch keine Lösung</span>`;
+    h += `</div>${!ac && !dis()?`<form class="addsol" data-addsol="${esc(f.id)}"><input class="txt" id="add-${esc(f.id)}" placeholder="Lösung hinzufügen …" value="${esc(drafts["add-"+f.id]??"")}"><button class="btn small">+</button></form>`:""}</td></tr>`;
+  }
+  h += `</tbody></table></div>`;
+  if (!dis() && !ac) h += `<form class="row" id="addFnForm"><input class="txt" id="newFn" placeholder="Neue Teilfunktion, z. B. „Kippmoment abstützen“" style="max-width:420px" value="${esc(drafts.newFn??"")}"><button class="btn">Zeile hinzufügen</button></form>`;
+
+  h += `<section class="stack"><div class="row" style="justify-content:space-between"><h2>Lösungskombinationen</h2>
+    <span class="muted" style="font-size:14px">Jede Kombination ist ein Gesamtkonzept. 2–3 sinnvolle reichen für Skizze und Bewertung.</span></div>`;
+  if (!S.combos.length) h += `<div class="empty">Noch keine Kombination. Lege unten eine an und klicke dann im Kasten pro Zeile eine Lösung an.</div>`;
+  else h += `<div class="combos">${S.combos.map((c,i)=>comboCard(c,i,fns)).join("")}</div>`;
+  if (!dis()) h += `<form class="row" id="addComboForm"><input class="txt" id="newCombo" placeholder="Name, z. B. „Konzept A: Dreibein Alu“" style="max-width:420px" value="${esc(drafts.newCombo??"")}"><button class="btn primary">Kombination anlegen</button></form>`;
+  return h + `</section>`;
+}
+
+function comboCard(c, i, fns){
+  const sol = id => S.solutions.find(s=>s.id===id);
+  const lines = fns.map(f=>{ const s = sol(c.picks?.[f.id]); return `<li class="${s?"":"miss"}"><span>${esc(f.name)}</span><span>${s?esc(s.text):"noch offen"}</span></li>`; }).join("");
+  return `<div class="combo ${c.id===activeCombo?"active":""}" style="--cc:${comboColor(i)}">
+    <div class="head"><i class="sw"></i><strong>${esc(c.name)}</strong></div><ul>${lines}</ul>
+    ${!dis() ? (sendTo==="delCombo-"+c.id
+      ? `<div class="row"><span style="font-size:13px">Wirklich löschen?</span><button class="btn small" data-act="delComboYes" data-id="${esc(c.id)}">Löschen</button><button class="btn small ghost" data-act="cancel">Nein</button></div>`
+      : `<div class="row">${c.id===activeCombo?`<button class="btn small" data-act="comboDone">Fertig</button>`:`<button class="btn small" data-act="editCombo" data-id="${esc(c.id)}">Lösungen wählen</button>`}<button class="btn small ghost" data-act="delCombo" data-id="${esc(c.id)}">Löschen</button></div>`) : ""}
+  </div>`;
+}
+
+function viewVote(){
+  const mine = S.votes[me]?.points || {};
+  const used = Object.values(mine).reduce((a,b)=>a+(b||0),0);
+  const totals = S.combos.map((c,i)=>({c,i,t:Object.values(S.votes).reduce((a,v)=>a+(v.points?.[c.id]||0),0)}));
+  const max = Math.max(1,...totals.map(x=>x.t));
+  const voters = Object.values(S.votes).filter(v=>Object.values(v.points||{}).some(n=>n>0)).length;
+  totals.sort((a,b)=>b.t-a.t);
+  let h = `<section class="sheet row" style="justify-content:space-between">
+    <div class="stack" style="gap:4px"><h2>Welche Konzepte gehen weiter?</h2>
+    <p class="muted">Jede Person verteilt ${VOTE_BUDGET} Punkte auf die Kombinationen. Die stärksten 1–2 gehen in Konzeptskizze (A7) und Bewertung nach VDI 2225 (A10).</p></div>
+    <div class="stack" style="gap:6px;align-items:flex-end"><span class="label">Deine Punkte</span>
+    <div class="budget">${Array.from({length:VOTE_BUDGET},(_,k)=>`<i class="${k<used?"used":""}"></i>`).join("")}</div>
+    <span class="muted mono" style="font-size:13px">${voters} von 6 haben abgestimmt</span></div></section>`;
+  if (!S.combos.length) return h + `<div class="empty">Noch keine Kombinationen. Legt sie im Reiter „Morphologischer Kasten“ an.</div>`;
+  const fns = fnSorted();
+  h += `<div class="stack">`;
+  totals.forEach(({c,i,t},rank)=>{
+    const n = mine[c.id]||0, done = fns.filter(f=>c.picks?.[f.id]).length;
+    h += `<div class="vote ${rank===0&&t>0?"lead":""}" style="--cc:${comboColor(i)}">
+      <div class="rank">${rank+1}</div>
+      <div style="min-width:0"><div class="row" style="gap:8px"><i class="sw" style="width:12px;height:12px;border-radius:50%;background:var(--cc)"></i><h3>${esc(c.name)}</h3><span class="muted mono" style="font-size:13px">${done}/${fns.length} Teilfunktionen belegt</span></div>
+        <div class="bar"><i style="width:${t/max*100}%"></i></div><span class="mono" style="font-size:13px">${t} Punkt${t===1?"":"e"}</span></div>
+      <div class="mine stepper"><button class="btn small" data-act="vote" data-id="${esc(c.id)}" data-d="-1" ${n<=0||dis()?"disabled":""} aria-label="Punkt abziehen">−</button>
+        <output>${n}</output><button class="btn small" data-act="vote" data-id="${esc(c.id)}" data-d="1" ${used>=VOTE_BUDGET||dis()?"disabled":""} aria-label="Punkt geben">+</button></div>
+    </div>`;
+  });
+  return h + `</div>`;
+}
+
+/* ---------- Timer ---------- */
+function tick(){
+  const el = $("#clock"); if (!el) return;
+  const r = S.state.round||0;
+  if (r<1 || r>6){ el.textContent = r>6 ? "fertig" : "5:00"; el.classList.remove("late"); return; }
+  const left = Math.max(0, (S.state.endsAt||0) - Date.now());
+  const m = Math.floor(left/60000), s = Math.floor(left/1000)%60;
+  el.textContent = left>0 ? `${m}:${String(s).padStart(2,"0")}` : "Zeit um";
+  el.classList.toggle("late", left < 30000);
+}
+setInterval(tick, 1000);
+
+/* ---------- Aktionen ---------- */
+async function setState(patch){ const next = {...S.state, ...patch}; S.state = next; await write("ws/state", () => db.doc("ws/state").set(next)); }
+
+async function claimSeat(i){
+  try{
+    const d = await db.doc("seats/s"+i).get();
+    if (d?.uid && d.uid !== me) return toast("Dieser Platz ist schon besetzt.");
+    const old = mySeat();
+    await db.doc("seats/s"+i).set({uid: me});
+    if (old != null && old !== i) await db.doc("seats/s"+old).set({uid: null});
+  }catch(e){ onErr(e); }
+}
+
+document.addEventListener("click", e => {
+  const tb = e.target.closest(".tab");
+  if (tb){ tab = tb.dataset.tab; sendTo=null; try{ localStorage.setItem("iw-tab", tab); }catch(_){} render(); return; }
+  const g = e.target.closest("[data-goto]"); if (g){ tab = g.dataset.goto; render(); return; }
+  const a = e.target.closest("[data-act]"); if (!a || a.disabled) return;
+  const act = a.dataset.act, id = a.dataset.id;
+  if (act==="cancel"){ sendTo=null; render(); return; }
+  if (!sb || !myName) return;
+  switch(act){
+    case "seat": claimSeat(+a.dataset.i); break;
+    case "leave": { const s=mySeat(); if (s!=null) write("seats/s"+s, ()=>db.doc("seats/s"+s).set({uid:null})); break; }
+    case "start": {
+      const p = (drafts.problem ?? S.state.problem ?? "").trim();
+      if (!p) return toast("Bitte zuerst die Problemstellung eintragen.");
+      delete drafts.problem; setState({problem:p, round:1, endsAt:Date.now()+ROUND_MS}); break; }
+    case "next": setState({round:(S.state.round||0)+1, endsAt:Date.now()+ROUND_MS}); break;
+    case "finish": setState({round:7, endsAt:0}); break;
+    case "reset": sendTo="reset"; render(); break;
+    case "resetYes": sendTo=null; setState({round:0, endsAt:0}); break;
+    case "send": sendTo=id; render(); break;
+    case "sendYes": {
+      const fn = document.getElementById("sel-"+id)?.value, d = S.ideas[id];
+      if (!fn || !d) return;
+      sendTo=null; db.collection("solutions").add({fn, text:d.text.trim(), fromIdea:id, uid:me, at:Date.now()}).then(()=>toast("In den Kasten übernommen.")).catch(onErr); break; }
+    case "delSol": write("solutions/"+id, ()=>db.doc("solutions/"+id).delete()); break;
+    case "delFn": sendTo="delFn-"+id; render(); break;
+    case "delFnYes": { sendTo=null; const sols=S.solutions.filter(s=>s.fn===id);
+      (async()=>{ try{ for (const s of sols) await db.doc("solutions/"+s.id).delete(); await db.doc("functions/"+id).delete(); }catch(err){ onErr(err); } })(); break; }
+    case "editCombo": activeCombo=id; render(); window.scrollTo({top:0,behavior:"smooth"}); break;
+    case "comboDone": activeCombo=null; render(); break;
+    case "pick": {
+      const c = S.combos.find(x=>x.id===activeCombo); if (!c) return;
+      const picks = {...(c.picks||{})}; const fn=a.dataset.fn, sol=a.dataset.sol;
+      if (picks[fn]===sol) delete picks[fn]; else picks[fn]=sol;
+      const body = {name:c.name, uid:c.uid??null, at:c.at??Date.now(), picks};
+      write("combos/"+c.id, ()=>db.doc("combos/"+c.id).set(body)); break; }
+    case "delCombo": sendTo="delCombo-"+id; render(); break;
+    case "delComboYes": sendTo=null; if (activeCombo===id) activeCombo=null; write("combos/"+id, ()=>db.doc("combos/"+id).delete()); break;
+    case "vote": {
+      const pts = {...(S.votes[me]?.points||{})}; const used = Object.values(pts).reduce((x,y)=>x+(y||0),0);
+      const d = +a.dataset.d, n = (pts[id]||0)+d;
+      if (n<0 || (d>0 && used>=VOTE_BUDGET)) return;
+      if (n===0) delete pts[id]; else pts[id]=n;
+      write("votes/"+me, ()=>db.doc("votes/"+me).set({points:pts})); break; }
+  }
+});
+document.addEventListener("keydown", e => { if ((e.key==="Enter"||e.key===" ") && e.target.matches(".chip.pickable")){ e.preventDefault(); e.target.click(); } });
+
+document.addEventListener("input", e => {
+  const t = e.target;
+  if (t.dataset.idea){
+    const id=t.dataset.idea; drafts[id]=t.value;
+    debounced(id, 700, () => { const body={sheet:+t.dataset.sh, round:+t.dataset.r, slot:+t.dataset.k, text:drafts[id], uid:me, at:Date.now()};
+      write("ideas/"+id, async()=>{ await db.doc("ideas/"+id).set(body); if (drafts[id]===body.text) delete drafts[id]; }); });
+  } else if (t.id==="problem"){
+    drafts.problem=t.value; debounced("problem", 900, ()=>{ const v=drafts.problem; setState({problem:v}).then(()=>{ if (drafts.problem===v) delete drafts.problem; }); });
+  } else if (t.dataset.fn){
+    const fid=t.dataset.fn, key="fn-"+fid; drafts[key]=t.value;
+    debounced(key, 800, ()=>{ const f=S.functions.find(x=>x.id===fid); if (!f) return; const v=drafts[key].trim(); if (!v) return;
+      write("functions/"+fid, async()=>{ await db.doc("functions/"+fid).set({name:v, order:f.order??0}); if (drafts[key]?.trim()===v) delete drafts[key]; }); });
+  } else if (t.id && (t.id.startsWith("add-") || t.id==="newFn" || t.id==="newCombo")) drafts[t.id]=t.value;
+});
+
+document.addEventListener("submit", e => {
+  e.preventDefault();
+  const f = e.target;
+  if (f.id==="joinForm"){
+    const v = $("#joinName").value.trim(); if (!v) return;
+    myName = v; try{ localStorage.setItem("iw-name", v); }catch(_){}
+    if (sb) write("people/"+me, ()=>db.doc("people/"+me).set({name:v}));
+    render(); return;
+  }
+  if (!sb || !myName) return;
+  if (f.dataset.addsol){
+    const fn=f.dataset.addsol, key="add-"+fn, v=(drafts[key]||"").trim(); if (!v) return;
+    delete drafts[key]; db.collection("solutions").add({fn, text:v, uid:me, at:Date.now()}).catch(onErr);
+  } else if (f.id==="addFnForm"){
+    const v=(drafts.newFn||"").trim(); if (!v) return; delete drafts.newFn;
+    const order = Math.max(0,...S.functions.map(x=>x.order||0))+1;
+    db.collection("functions").add({name:v, order}).catch(onErr);
+  } else if (f.id==="addComboForm"){
+    const v=(drafts.newCombo||"").trim(); if (!v) return; delete drafts.newCombo;
+    db.collection("combos").add({name:v, picks:{}, uid:me, at:Date.now()}).then(ref=>{ activeCombo=ref.id; render(); window.scrollTo({top:0,behavior:"smooth"}); }).catch(onErr);
+  }
+});
+
+/* ---------- Start ---------- */
+let rq = 0;
+function scheduleRender(){ if (rq) return; rq = requestAnimationFrame(()=>{ rq=0; render(); }); }
+function bind(coll, apply){ db.collection(coll).onSnapshot(list => { apply(list); scheduleRender(); }); }
+const byAt = (a,b)=>(a.at||0)-(b.at||0);
+
+(async () => {
+  render();
+  if (!window.supabase || SUPABASE_URL.includes("DEIN-PROJEKT")){
+    showBanner("Die Datenbank ist noch nicht eingerichtet: Trage oben im Code SUPABASE_URL und SUPABASE_ANON_KEY ein.");
+    $("#view").innerHTML = '<div class="empty">Keine Verbindung zur Gruppe.</div>'; return;
+  }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  bind("ws", list => { const s = list.find(x=>x.id==="state"); S.state = {round:0, problem:"", endsAt:0, ...(s||{})}; delete S.state.id; });
+  bind("seats", list => { S.seats = {}; list.forEach(r=>S.seats[r.id]=r); });
+  bind("ideas", list => { S.ideas = {}; list.forEach(r=>S.ideas[r.id]=r); });
+  bind("functions", list => S.functions = list);
+  bind("solutions", list => S.solutions = list.sort(byAt));
+  bind("combos", list => S.combos = list.sort(byAt));
+  bind("votes", list => { S.votes = {}; list.forEach(r=>S.votes[r.id]=r); });
+  bind("people", list => { S.people = {}; list.forEach(r=>S.people[r.id]=r); });
+
+  async function loadAll(){
+    let from = 0; const all = [];
+    while (true){
+      const { data, error } = await sb.from("docs").select("path,coll,data").range(from, from+999);
+      if (error) throw error; all.push(...data); if (data.length < 1000) break; from += 1000;
+    }
+    rows.clear(); all.forEach(r=>rows.set(r.path, r));
+    ["ws","seats","ideas","functions","solutions","combos","votes","people"].forEach(emit);
+  }
+  sb.channel("docs-live")
+    .on("postgres_changes", {event:"*", schema:"public", table:"docs"}, p => {
+      if (p.eventType === "DELETE"){ const path = p.old?.path; if (!path) return; const r = rows.get(path); rows.delete(path); if (r) emit(r.coll); }
+      else { const r = p.new; rows.set(r.path, {path:r.path, coll:r.coll, data:r.data}); emit(r.coll); }
+    })
+    .subscribe(status => { if (status === "SUBSCRIBED") loadAll().catch(()=>showBanner("Verbindung zur Datenbank fehlgeschlagen. Prüfe URL und Key.")); });
+  try { await loadAll(); showBanner(""); } catch(e){ showBanner("Verbindung zur Datenbank fehlgeschlagen. Prüfe URL und Key."); }
+  if (myName && !S.people[me]) write("people/"+me, ()=>db.doc("people/"+me).set({name:myName}));
+  setInterval(() => loadAll().catch(()=>{}), 30000);
+})();
+})();
+</script>
+</body>
+</html>
