@@ -237,7 +237,7 @@ let me = null, myName = "";
 try { me = localStorage.getItem("iw-id"); myName = localStorage.getItem("iw-name") || ""; } catch(e) {}
 if (!me){ me = "u" + Math.random().toString(36).slice(2,12); try{ localStorage.setItem("iw-id", me); }catch(e){} }
 
-const S = { state:{round:0,problem:"",endsAt:0}, seats:{}, ideas:{}, functions:[], solutions:[], combos:[], votes:{}, people:{} };
+const S = { state:{round:0,problem:"",endsAt:0}, seats:{}, ideas:{}, functions:[], solutions:[], combos:[], votes:{}, people:{}, done:{} };
 const drafts = {}; const chains = {}; const timers = {};
 let tab = "635", activeCombo = null, sendTo = null, readOnly = false;
 try { const t = localStorage.getItem("iw-tab"); if (t) tab = t; } catch(e) {}
@@ -279,57 +279,78 @@ function render(){
   tick();
 }
 
+const isDone = (seat, r) => !!S.done["s"+seat+"_r"+r];
+const started = () => Object.keys(S.done).length > 0;
+const seatHasDone = seat => Object.keys(S.done).some(k => k.startsWith("s"+seat+"_"));
+function myRoundOf(seat){ for (let r=1;r<=6;r++) if (!isDone(seat,r)) return r; return 7; }
+const prevSeat = seat => (seat + 1) % SEATS;   /* von diesem Platz kommt das Blatt */
+const isAvailable = (seat, r) => r === 1 || isDone(prevSeat(seat), r - 1);
+const allSeated = () => { for (let i=0;i<SEATS;i++) if (!S.seats["s"+i]?.uid) return false; return true; };
+
 function view635(){
-  const st = S.state, r = st.round||0, seat = mySeat();
+  const seat = mySeat(), st = S.state, locked = started();
   let h = `<section class="sheet stack">
     <span class="label">Problemstellung (lösungsneutral)</span>
-    ${r===0 && !dis() ? `<textarea class="txt" id="problem" rows="3" placeholder="Wie kann …?">${esc(drafts.problem ?? st.problem)}</textarea>
-      <p class="muted" style="font-size:14px">Kann nur vor Runde 1 geändert werden. Bitte so formulieren, dass keine Lösung vorgegeben ist.</p>`
+    ${!locked && !dis() ? `<textarea class="txt" id="problem" rows="3" placeholder="Wie kann …?">${esc(drafts.problem ?? st.problem)}</textarea>
+      <p class="muted" style="font-size:14px">Kann nur geändert werden, bis die erste Zeile abgegeben ist.</p>`
       : `<p style="font-size:18px">${esc(st.problem) || '<span class="muted">Noch keine Problemstellung eingetragen.</span>'}</p>`}
   </section>`;
 
-  h += `<section class="stack"><div class="row" style="justify-content:space-between"><h2>Sitzordnung</h2>
-    <span class="muted" style="font-size:14px">Jede Person nimmt einen Platz. Das Formblatt wandert pro Runde einen Platz weiter.</span></div><div class="seats">`;
+  h += `<section class="sheet stack"><h3>So läuft es</h3>
+    <p>Jede Person schreibt pro Runde <strong>3 Ideen</strong> in ihre gelbe Zeile und klickt auf <strong>„Zeile abgeben“</strong>. Danach wandert das Blatt automatisch weiter und du bekommst das nächste. Ist dein nächstes Blatt noch bei deinem Vorgänger, wartest du kurz, die Seite macht dann von selbst weiter.</p>
+    <p class="muted">Regeln: keine Kritik, Quantität vor Qualität, Ideen der anderen weiterdenken ist ausdrücklich erwünscht. Richtzeit: ca. 5 Minuten pro Zeile.</p></section>`;
+
+  h += `<section class="stack"><div class="row" style="justify-content:space-between"><h2>Plätze und Fortschritt</h2>
+    <span class="muted" style="font-size:14px">✓ = Zeile abgegeben</span></div><div class="seats">`;
   for (let i=0;i<SEATS;i++){
-    const uid = S.seats["s"+i]?.uid || null, isMe = uid && uid===me;
+    const uid = S.seats["s"+i]?.uid || null, isMe = uid && uid===me, rr = myRoundOf(i);
+    const dots = Array.from({length:6},(_,k)=>`<i class="${isDone(i,k+1)?"done":(uid && k+1===rr && isAvailable(i,rr))?"now":""}" title="Runde ${k+1}"></i>`).join("");
     h += `<div class="seat ${isMe?"me":""}"><span class="label">Platz ${i+1}</span>
       <div class="who">${avatar(uid)}<span>${esc(nameOf(uid))}</span></div>
-      ${isMe ? `<button class="btn small ghost" data-act="leave" ${dis()}>Platz freigeben</button>`
-        : !uid ? `<button class="btn small" data-act="seat" data-i="${i}" ${dis()}>Hier sitzen</button>` : `<span class="muted" style="font-size:13px">besetzt</span>`}
+      <div class="progress">${dots}</div>
+      <span class="muted mono" style="font-size:12px">${rr>6?"fertig ✓":uid?`Runde ${rr}${isAvailable(i,rr)?"":" · wartet"}`:"–"}</span>
+      ${isMe ? (seatHasDone(i) ? "" : `<button class="btn small ghost" data-act="leave" ${dis()}>Platz freigeben</button>`)
+        : !uid ? `<button class="btn small" data-act="seat" data-i="${i}" ${dis()}>Hier sitzen</button>` : ""}
     </div>`;
   }
   h += `</div></section>`;
 
-  const prog = Array.from({length:6},(_,k)=>`<i class="${k+1<r?"done":k+1===r?"now":""}"></i>`).join("");
-  h += `<section class="sheet control">
-    <div><span class="label">Runde</span><div class="roundno">${r===0?"–":r>6?"6":r}<small> / 6</small></div></div>
-    <div class="stack" style="gap:8px"><div class="progress">${prog}</div>
-      <div class="row"><span class="label">Restzeit</span><span class="clock" id="clock">5:00</span></div></div>
-    <div class="row">
-      ${r===0 ? `<button class="btn primary" data-act="start" ${dis()}>Runde 1 starten</button>`
-       : r<6 ? `<button class="btn primary" data-act="next" ${dis()}>Runde ${r+1} starten</button>`
-       : r===6 ? `<button class="btn primary" data-act="finish" ${dis()}>635 abschließen</button>` : ""}
-      ${r>0 ? `<button class="btn ghost" data-act="reset" ${dis()}>Zurück auf Start</button>`:""}
-    </div>
-  </section>`;
-  if (sendTo === "reset") h += `<div class="banner row" style="justify-content:space-between"><span>Runden zurücksetzen? Geschriebene Ideen bleiben erhalten.</span>
-    <span class="row"><button class="btn small" data-act="resetYes">Ja, zurücksetzen</button><button class="btn small ghost" data-act="cancel">Abbrechen</button></span></div>`;
-
-  if (r===0){
-    h += `<section class="sheet stack"><h3>So läuft die Methode 635</h3>
-      <p>6 Personen schreiben je 3 Ideen in 5 Minuten. Danach wandert das Formblatt zum nächsten Platz, und man baut auf den Ideen der Vorgänger auf oder schreibt neue. Nach 6 Runden stehen bis zu 108 Ideen auf den Blättern.</p>
-      <p class="muted">Regeln: keine Kritik, Quantität vor Qualität, Ideen anderer weiterdenken ist ausdrücklich erwünscht. Eine Person moderiert und startet die Runden.</p></section>`;
-  } else if (r>6){
-    h += `<section class="sheet stack"><h3>Die Methode 635 ist abgeschlossen</h3>
-      <p>Unter „Alle Formblätter“ seht ihr alle Ideen. Von dort lassen sich gute Ideen direkt als Lösung in den morphologischen Kasten übernehmen.</p>
+  const total = Object.keys(S.done).length;
+  if (total >= 36){
+    h += `<section class="sheet stack"><h3>Die Methode 635 ist abgeschlossen 🎉</h3>
+      <p>Alle 36 Zeilen sind abgegeben. Unter „Alle Formblätter“ seht ihr alle Ideen und könnt gute Ideen mit „In den Kasten“ übernehmen.</p>
       <div class="row"><button class="btn primary" data-goto="ideen">Zu den Formblättern</button></div></section>`;
-  } else if (seat==null){
-    h += `<div class="empty">Nimm oben einen Platz, um dein aktuelles Formblatt zu sehen.</div>`;
-  } else {
-    const sh = sheetFor(seat, r);
-    h += `<section class="stack"><div class="row" style="justify-content:space-between"><h2>Dein Formblatt: Blatt ${sh+1}</h2>
-      <span class="muted" style="font-size:14px">Wird automatisch gespeichert.</span></div>${sheetTable(sh, r, true)}</section>`;
+    return h;
   }
+  if (seat == null){
+    h += `<div class="empty">${myName ? "Nimm oben einen freien Platz, um loszulegen." : "Gib oben deinen Vornamen ein und nimm dann einen Platz."}</div>`;
+    return h;
+  }
+  const r = myRoundOf(seat);
+  if (r > 6){
+    h += `<section class="sheet stack"><h3>Du bist fertig ✓</h3><p>Du hast alle 6 Zeilen abgegeben. Sobald alle durch sind, geht es im morphologischen Kasten weiter. Bis dahin kannst du unter „Alle Formblätter“ schon stöbern.</p></section>`;
+    return h;
+  }
+  const sh = sheetFor(seat, r);
+  if (!isAvailable(seat, r)){
+    const ps = prevSeat(seat), puid = S.seats["s"+ps]?.uid;
+    h += `<section class="sheet stack"><h3>Runde ${r}: kurz warten</h3>
+      <p>Dein nächstes Blatt (Blatt ${sh+1}) liegt noch bei <strong>${esc(puid?nameOf(puid):"Platz "+(ps+1))}</strong> (Platz ${ps+1}) in Runde ${r-1}.
+      Sobald die Zeile abgegeben ist, erscheint das Blatt hier automatisch. Du kannst die Seite auch schließen und später wiederkommen.</p></section>`;
+    if (r === 1 || !puid) h += `<p class="muted">Tipp: Erst wenn alle 6 Plätze besetzt sind, kann das Blatt reihum wandern.</p>`;
+    return h;
+  }
+  if (!allSeated() && r === 1) h += `<div class="banner">Noch nicht alle 6 Plätze sind besetzt. Du kannst Runde 1 schon schreiben, ab Runde 2 brauchst du aber deinen Vorgänger.</div>`;
+  const filled = [0,1,2].filter(k => ((drafts[ideaId(sh,r,k)] ?? S.ideas[ideaId(sh,r,k)]?.text ?? "").trim())).length;
+  h += `<section class="stack"><div class="row" style="justify-content:space-between"><h2>Runde ${r} von 6 · Blatt ${sh+1}</h2>
+      <span class="row"><span class="label">Richtzeit</span><span class="clock" id="clock" data-key="${seat}_${r}">5:00</span></span></div>
+    ${r>1?`<p class="muted" style="font-size:14px">Die Zeilen darüber stammen von den anderen. Lies sie kurz und denk sie weiter oder schreib ganz neue Ideen.</p>`:""}
+    ${sheetTable(sh, r, true)}
+    ${sendTo==="submit" ? `<div class="banner row" style="justify-content:space-between"><span>Zeile mit ${filled} von 3 Ideen abgeben? Danach kannst du sie nicht mehr ändern.</span>
+        <span class="row"><button class="btn small primary" data-act="submitYes">Ja, abgeben</button><button class="btn small ghost" data-act="cancel">Weiter schreiben</button></span></div>`
+      : `<div class="row" style="justify-content:space-between"><span class="muted" style="font-size:14px"><span id="fillCount">${filled}</span> von 3 Ideen eingetragen · wird automatisch gespeichert</span>
+        <button class="btn primary" id="submitBtn" data-act="submit" ${dis()||(filled===0?"disabled":"")}>Zeile abgeben →</button></div>`}
+  </section>`;
   return h;
 }
 
@@ -369,7 +390,7 @@ function viewIdeen(){
   const any = Object.values(S.ideas).some(i=>i.text && i.text.trim());
   let h = `<section class="row" style="justify-content:space-between"><h2>Alle sechs Formblätter</h2>
     <p class="muted" style="font-size:14px">Für die Doku: Ideen clustern und die besten mit „In den Kasten“ einer Teilfunktion zuordnen.</p></section>`;
-  if (!any) return h + `<div class="empty">Noch keine Ideen. Sie erscheinen hier, sobald die erste Runde der Methode 635 läuft.</div>`;
+  if (!any) return h + `<div class="empty">Noch keine Ideen. Sie erscheinen hier, sobald die ersten Zeilen geschrieben sind.</div>`;
   h += `<div class="sheets-grid">`;
   for (let sh=0;sh<SEATS;sh++) h += `<section class="stack"><h3>Blatt ${sh+1}</h3>${sheetTable(sh, 7, false)}</section>`;
   return h + `</div>`;
@@ -454,12 +475,12 @@ function viewVote(){
   return h + `</div>`;
 }
 
-/* ---------- Timer ---------- */
+/* ---------- Timer (lokale Richtzeit pro Zeile) ---------- */
 function tick(){
   const el = $("#clock"); if (!el) return;
-  const r = S.state.round||0;
-  if (r<1 || r>6){ el.textContent = r>6 ? "fertig" : "5:00"; el.classList.remove("late"); return; }
-  const left = Math.max(0, (S.state.endsAt||0) - Date.now());
+  const key = "iw-start-" + el.dataset.key; let t0 = null;
+  try { t0 = +localStorage.getItem(key) || null; if (!t0){ t0 = Date.now(); localStorage.setItem(key, String(t0)); } } catch(e){ timers.t0 ??= {}; t0 = timers.t0[key] ??= Date.now(); }
+  const left = Math.max(0, t0 + ROUND_MS - Date.now());
   const m = Math.floor(left/60000), s = Math.floor(left/1000)%60;
   el.textContent = left>0 ? `${m}:${String(s).padStart(2,"0")}` : "Zeit um";
   el.classList.toggle("late", left < 30000);
@@ -467,13 +488,33 @@ function tick(){
 setInterval(tick, 1000);
 
 /* ---------- Aktionen ---------- */
-async function setState(patch){ const next = {...S.state, ...patch}; S.state = next; await write("ws/state", () => db.doc("ws/state").set(next)); }
+async function setState(patch){ if (started() && "problem" in patch) return; const next = {...S.state, ...patch}; S.state = next; await write("ws/state", () => db.doc("ws/state").set(next)); }
+
+async function submitRow(){
+  sendTo = null;
+  const seat = mySeat(); if (seat == null) return;
+  const r = myRoundOf(seat); if (r > 6 || !isAvailable(seat, r)) return render();
+  const sh = sheetFor(seat, r);
+  try{
+    for (let k=0;k<3;k++){
+      const id = ideaId(sh,r,k); clearTimeout(timers[id]);
+      const text = (drafts[id] ?? S.ideas[id]?.text ?? "");
+      if (drafts[id] !== undefined || S.ideas[id]) await db.doc("ideas/"+id).set({sheet:sh, round:r, slot:k, text, uid:me, at:Date.now()});
+      delete drafts[id];
+    }
+    await db.doc("done/s"+seat+"_r"+r).set({uid:me, at:Date.now()});
+    toast(r < 6 ? "Abgegeben. Weiter geht's mit dem nächsten Blatt." : "Abgegeben. Du bist fertig!");
+    window.scrollTo({top:0, behavior:"smooth"});
+  }catch(e){ onErr(e); }
+  render();
+}
 
 async function claimSeat(i){
+  const old = mySeat();
+  if (old != null && seatHasDone(old)) return toast("Du hast schon Zeilen abgegeben und kannst den Platz nicht mehr wechseln.");
   try{
     const d = await db.doc("seats/s"+i).get();
     if (d?.uid && d.uid !== me) return toast("Dieser Platz ist schon besetzt.");
-    const old = mySeat();
     await db.doc("seats/s"+i).set({uid: me});
     if (old != null && old !== i) await db.doc("seats/s"+old).set({uid: null});
   }catch(e){ onErr(e); }
@@ -489,15 +530,9 @@ document.addEventListener("click", e => {
   if (!sb || !myName) return;
   switch(act){
     case "seat": claimSeat(+a.dataset.i); break;
-    case "leave": { const s=mySeat(); if (s!=null) write("seats/s"+s, ()=>db.doc("seats/s"+s).set({uid:null})); break; }
-    case "start": {
-      const p = (drafts.problem ?? S.state.problem ?? "").trim();
-      if (!p) return toast("Bitte zuerst die Problemstellung eintragen.");
-      delete drafts.problem; setState({problem:p, round:1, endsAt:Date.now()+ROUND_MS}); break; }
-    case "next": setState({round:(S.state.round||0)+1, endsAt:Date.now()+ROUND_MS}); break;
-    case "finish": setState({round:7, endsAt:0}); break;
-    case "reset": sendTo="reset"; render(); break;
-    case "resetYes": sendTo=null; setState({round:0, endsAt:0}); break;
+    case "leave": { const s=mySeat(); if (s!=null && !seatHasDone(s)) write("seats/s"+s, ()=>db.doc("seats/s"+s).set({uid:null})); break; }
+    case "submit": sendTo="submit"; render(); break;
+    case "submitYes": submitRow(); break;
     case "send": sendTo=id; render(); break;
     case "sendYes": {
       const fn = document.getElementById("sel-"+id)?.value, d = S.ideas[id];
@@ -531,6 +566,8 @@ document.addEventListener("input", e => {
   const t = e.target;
   if (t.dataset.idea){
     const id=t.dataset.idea; drafts[id]=t.value;
+    const n=[...document.querySelectorAll("textarea[data-idea]")].filter(x=>x.value.trim()).length;
+    const fc=$("#fillCount"), sbtn=$("#submitBtn"); if (fc) fc.textContent=n; if (sbtn) sbtn.disabled = n===0 || !!dis();
     debounced(id, 700, () => { const body={sheet:+t.dataset.sh, round:+t.dataset.r, slot:+t.dataset.k, text:drafts[id], uid:me, at:Date.now()};
       write("ideas/"+id, async()=>{ await db.doc("ideas/"+id).set(body); if (drafts[id]===body.text) delete drafts[id]; }); });
   } else if (t.id==="problem"){
@@ -586,6 +623,7 @@ const byAt = (a,b)=>(a.at||0)-(b.at||0);
   bind("combos", list => S.combos = list.sort(byAt));
   bind("votes", list => { S.votes = {}; list.forEach(r=>S.votes[r.id]=r); });
   bind("people", list => { S.people = {}; list.forEach(r=>S.people[r.id]=r); });
+  bind("done", list => { S.done = {}; list.forEach(r=>S.done[r.id]=r); });
 
   async function loadAll(){
     let from = 0; const all = [];
@@ -594,7 +632,7 @@ const byAt = (a,b)=>(a.at||0)-(b.at||0);
       if (error) throw error; all.push(...data); if (data.length < 1000) break; from += 1000;
     }
     rows.clear(); all.forEach(r=>rows.set(r.path, r));
-    ["ws","seats","ideas","functions","solutions","combos","votes","people"].forEach(emit);
+    ["ws","seats","ideas","functions","solutions","combos","votes","people","done"].forEach(emit);
   }
   sb.channel("docs-live")
     .on("postgres_changes", {event:"*", schema:"public", table:"docs"}, p => {
