@@ -573,7 +573,7 @@ const byAt = (a,b)=>(a.at||0)-(b.at||0);
 
 (async () => {
   render();
-  if (!window.supabase || SUPABASE_URL.includes("DEIN-PROJEKT")){
+  if (!window.supabase || SUPABASE_URL.includes("DEIN-"+"PROJEKT")){
     showBanner("Die Datenbank ist noch nicht eingerichtet: Trage oben im Code SUPABASE_URL und SUPABASE_ANON_KEY ein.");
     $("#view").innerHTML = '<div class="empty">Keine Verbindung zur Gruppe.</div>'; return;
   }
