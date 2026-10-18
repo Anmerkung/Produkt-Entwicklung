@@ -259,7 +259,7 @@ if (/^#(635|ideen|kasten|vote)$/.test(location.hash)) tab = location.hash.slice(
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const nameOf = id => id ? (id === me ? "Du" : (S.people[id]?.name || "Jemand")) : "frei";
+const nameOf = id => id ? (S.people[id]?.name || (id === me ? (myName || "Du") : "Jemand")) : "frei";
 function hue(id){ let h=0; for (const c of String(id)) h=(h*31+c.charCodeAt(0))%360; return h; }
 const avatar = id => id ? `<span class="av" style="background:hsl(${hue(id)} 55% 42%)">${esc((S.people[id]?.name||"?").slice(0,1).toUpperCase())}</span>` : `<i class="av"></i>`;
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(timers.toast); timers.toast=setTimeout(()=>t.hidden=true,3200); }
@@ -426,6 +426,11 @@ function viewKasten(){
   const acIdx = ac ? S.combos.indexOf(ac) : -1;
   let h = `<section class="row" style="justify-content:space-between"><h2>Morphologischer Kasten</h2>
     <p class="muted" style="font-size:14px">Zeilen sind Teilfunktionen aus der Funktionsstruktur (A4), in jeder Zeile stehen Lösungsprinzipien.</p></section>`;
+  h += `<details class="sheet" id="fsDetails"${timers.fsOpen?" open":""}><summary style="cursor:pointer;font-weight:600">Funktionsstruktur aus Kapitel 4 anzeigen</summary>
+    <div class="stack" style="margin-top:12px">
+      <p class="muted" style="font-size:14px">Die Zeilen des Kastens fassen die Teilfunktionen der Funktionsstruktur lösungsneutral zusammen.</p>
+      ${["fs1.png","fs2.png","fs3.png"].map((f,i)=>`<figure style="margin:0"><img src="${f}" alt="Funktionsstruktur, Abbildung ${i+1}" style="width:100%;height:auto;border:1px solid var(--rule);background:#fff" onerror="this.closest('figure').hidden=true"><figcaption class="muted" style="font-size:13px">Abbildung ${i+1}</figcaption></figure>`).join("")}
+    </div></details>`;
   if (ac) h += `<div class="banner row" style="justify-content:space-between;border-color:${comboColor(acIdx)}">
     <span>Du stellst <strong>${esc(ac.name)}</strong> zusammen: Klicke pro Zeile auf genau eine Lösung.</span>
     <button class="btn small" data-act="comboDone">Fertig</button></div>`;
@@ -598,6 +603,7 @@ $("#copyLink").addEventListener("click", async () => {
   try { await navigator.clipboard.writeText(el.value); toast("Link kopiert. Schick ihn dir z. B. per WhatsApp an dich selbst."); }
   catch(e){ el.select(); toast("Bitte den markierten Link kopieren."); }
 });
+document.addEventListener("toggle", e => { if (e.target.id === "fsDetails") timers.fsOpen = e.target.open; }, true);
 document.addEventListener("keydown", e => { if ((e.key==="Enter"||e.key===" ") && e.target.matches(".chip.pickable")){ e.preventDefault(); e.target.click(); } });
 
 document.addEventListener("input", e => {
