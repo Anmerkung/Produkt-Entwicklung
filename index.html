@@ -179,7 +179,7 @@ body{margin:0}
       <p class="muted">Aufgabe 5 (Methode 635) und Aufgabe 6 (morphologischer Kasten) gemeinsam bearbeiten. Alle Eingaben sind sofort für die ganze Gruppe sichtbar.</p>
     </div>
     <div class="meta">
-      <span>Ich</span><span id="meName">…</span>
+      <span>Ich</span><span><span id="meName">…</span> <button class="btn small ghost" id="deviceBtn" type="button" hidden>Anderes Gerät</button></span>
       <span>Platz</span><span id="meSeat">–</span>
       <span>Ideen</span><span id="cntIdeas">0</span>
       <span>Konzepte</span><span id="cntCombos">0</span>
@@ -192,6 +192,11 @@ body{margin:0}
     <button class="btn primary">Mitmachen</button>
   </form>
 
+  <section id="devicePanel" class="sheet stack" hidden>
+    <h3>Auf einem anderen Gerät weitermachen</h3>
+    <p>Öffne diesen Link auf deinem Handy oder Tablet. Dort bist du dann automatisch du selbst, mit deinem Platz und deinen Ideen. <strong>Gib den Link nicht weiter</strong>, sonst kann jemand anderes in deinem Namen schreiben.</p>
+    <div class="row"><input class="txt mono" id="deviceLink" readonly style="max-width:520px"><button class="btn" id="copyLink" type="button">Kopieren</button><button class="btn ghost" id="closeDevice" type="button">Schließen</button></div>
+  </section>
   <div id="banner" class="banner" hidden></div>
 
   <nav class="tabs" role="tablist">
@@ -235,6 +240,15 @@ const db = {
 /* ---------- Identität ohne Account: Name + zufällige ID im Browser ---------- */
 let me = null, myName = "";
 try { me = localStorage.getItem("iw-id"); myName = localStorage.getItem("iw-name") || ""; } catch(e) {}
+/* Geräte-Link: ?id=…&name=… übernimmt die Identität auf einem anderen Gerät */
+try {
+  const q = new URLSearchParams(location.search), qid = q.get("id"), qn = q.get("name");
+  if (qid && /^u[a-z0-9]{6,20}$/.test(qid)){
+    me = qid; localStorage.setItem("iw-id", qid);
+    if (qn){ myName = qn.slice(0,40); localStorage.setItem("iw-name", myName); }
+  }
+  if (qid || qn) history.replaceState(null, "", location.pathname + location.hash);
+} catch(e) {}
 if (!me){ me = "u" + Math.random().toString(36).slice(2,12); try{ localStorage.setItem("iw-id", me); }catch(e){} }
 
 const S = { state:{round:0,problem:"",endsAt:0}, seats:{}, ideas:{}, functions:[], solutions:[], combos:[], votes:{}, people:{}, done:{} };
@@ -272,6 +286,7 @@ function render(){
   if (focus){ const el=document.getElementById(focus.id); if (el){ el.focus(); try{ el.setSelectionRange(focus.s, focus.e); }catch(e){} } }
   const seat = mySeat();
   $("#joinForm").hidden = !!myName;
+  $("#deviceBtn").hidden = !myName;
   $("#meName").textContent = myName || "noch kein Name";
   $("#meSeat").textContent = seat==null ? "–" : String(seat+1);
   $("#cntIdeas").textContent = Object.values(S.ideas).filter(i=>i.text && i.text.trim()).length;
@@ -285,6 +300,8 @@ const seatHasDone = seat => Object.keys(S.done).some(k => k.startsWith("s"+seat+
 function myRoundOf(seat){ for (let r=1;r<=6;r++) if (!isDone(seat,r)) return r; return 7; }
 const prevSeat = seat => (seat + 1) % SEATS;   /* von diesem Platz kommt das Blatt */
 const isAvailable = (seat, r) => r === 1 || isDone(prevSeat(seat), r - 1);
+const roundKey = (seat, r) => "iw-start-" + seat + "_" + r;
+const roundStarted = (seat, r) => { try { if (localStorage.getItem(roundKey(seat, r))) return true; } catch(e){} return !!(timers.started && timers.started[roundKey(seat, r)]); };
 const allSeated = () => { for (let i=0;i<SEATS;i++) if (!S.seats["s"+i]?.uid) return false; return true; };
 
 function view635(){
@@ -340,6 +357,13 @@ function view635(){
     if (r === 1 || !puid) h += `<p class="muted">Tipp: Erst wenn alle 6 Plätze besetzt sind, kann das Blatt reihum wandern.</p>`;
     return h;
   }
+  if (!roundStarted(seat, r)){
+    const before = (r - 1) * 3;
+    h += `<section class="sheet stack"><h3>Runde ${r} von 6 ist bereit</h3>
+      <p>Dein nächstes Blatt ist <strong>Blatt ${sh+1}</strong>${r>1?`, darauf stehen schon bis zu ${before} Ideen der anderen`:""}. Wenn du loslegst, läuft die Richtzeit von 5 Minuten.</p>
+      <div class="row"><button class="btn primary" data-act="startRound" data-key="${seat}_${r}" ${dis()}>Runde ${r} starten</button></div></section>`;
+    return h;
+  }
   if (!allSeated() && r === 1) h += `<div class="banner">Noch nicht alle 6 Plätze sind besetzt. Du kannst Runde 1 schon schreiben, ab Runde 2 brauchst du aber deinen Vorgänger.</div>`;
   const filled = [0,1,2].filter(k => ((drafts[ideaId(sh,r,k)] ?? S.ideas[ideaId(sh,r,k)]?.text ?? "").trim())).length;
   h += `<section class="stack"><div class="row" style="justify-content:space-between"><h2>Runde ${r} von 6 · Blatt ${sh+1}</h2>
@@ -362,7 +386,7 @@ function sheetTable(sh, uptoRound, editable){
     h += `<tr class="${cur?"current":fut?"future":""}"><th class="rn"><span class="rlab">${r}<small>Platz ${w+1} · ${esc(uid?nameOf(uid):"–")}</small></span></th>`;
     for (let k=0;k<3;k++){
       const id = ideaId(sh,r,k), d = S.ideas[id];
-      if (cur) h += `<td><textarea id="in-${id}" data-idea="${id}" data-sh="${sh}" data-r="${r}" data-k="${k}" placeholder="Idee ${k+1} …" ${dis()}>${esc(drafts[id] ?? d?.text ?? "")}</textarea></td>`;
+      if (cur) h += `<td><textarea id="in-${id}" data-idea="${id}" data-sh="${sh}" data-r="${r}" data-k="${k}" placeholder="Idee ${k+1} …" autocapitalize="sentences" autocorrect="on" spellcheck="true" ${dis()}>${esc(drafts[id] ?? d?.text ?? "")}</textarea></td>`;
       else if (fut) h += `<td></td>`;
       else h += `<td>${ideaCell(id, d, !editable)}</td>`;
     }
@@ -479,7 +503,8 @@ function viewVote(){
 function tick(){
   const el = $("#clock"); if (!el) return;
   const key = "iw-start-" + el.dataset.key; let t0 = null;
-  try { t0 = +localStorage.getItem(key) || null; if (!t0){ t0 = Date.now(); localStorage.setItem(key, String(t0)); } } catch(e){ timers.t0 ??= {}; t0 = timers.t0[key] ??= Date.now(); }
+  try { t0 = +localStorage.getItem(key) || null; } catch(e){}
+  if (!t0) t0 = (timers.started && timers.started[key]) || Date.now();
   const left = Math.max(0, t0 + ROUND_MS - Date.now());
   const m = Math.floor(left/60000), s = Math.floor(left/1000)%60;
   el.textContent = left>0 ? `${m}:${String(s).padStart(2,"0")}` : "Zeit um";
@@ -531,6 +556,9 @@ document.addEventListener("click", e => {
   switch(act){
     case "seat": claimSeat(+a.dataset.i); break;
     case "leave": { const s=mySeat(); if (s!=null && !seatHasDone(s)) write("seats/s"+s, ()=>db.doc("seats/s"+s).set({uid:null})); break; }
+    case "startRound": { const k = "iw-start-" + a.dataset.key, now = Date.now();
+      (timers.started ||= {})[k] = now; try { localStorage.setItem(k, String(now)); } catch(_){}
+      render(); const first = document.querySelector("textarea[data-idea]"); if (first) first.focus(); break; }
     case "submit": sendTo="submit"; render(); break;
     case "submitYes": submitRow(); break;
     case "send": sendTo=id; render(); break;
@@ -559,6 +587,16 @@ document.addEventListener("click", e => {
       if (n===0) delete pts[id]; else pts[id]=n;
       write("votes/"+me, ()=>db.doc("votes/"+me).set({points:pts})); break; }
   }
+});
+$("#deviceBtn").addEventListener("click", () => {
+  const url = location.origin + location.pathname + "?id=" + encodeURIComponent(me) + "&name=" + encodeURIComponent(myName);
+  $("#deviceLink").value = url; $("#devicePanel").hidden = false; $("#deviceLink").select();
+});
+$("#closeDevice").addEventListener("click", () => { $("#devicePanel").hidden = true; });
+$("#copyLink").addEventListener("click", async () => {
+  const el = $("#deviceLink");
+  try { await navigator.clipboard.writeText(el.value); toast("Link kopiert. Schick ihn dir z. B. per WhatsApp an dich selbst."); }
+  catch(e){ el.select(); toast("Bitte den markierten Link kopieren."); }
 });
 document.addEventListener("keydown", e => { if ((e.key==="Enter"||e.key===" ") && e.target.matches(".chip.pickable")){ e.preventDefault(); e.target.click(); } });
 
@@ -603,8 +641,18 @@ document.addEventListener("submit", e => {
 });
 
 /* ---------- Start ---------- */
-let rq = 0;
-function scheduleRender(){ if (rq) return; rq = requestAnimationFrame(()=>{ rq=0; render(); }); }
+let rq = 0, pendingRender = false;
+/* Solange jemand in ein Feld tippt, wird die Ansicht NICHT neu aufgebaut –
+   sonst setzt die Bildschirmtastatur (Tablet/Handy) jedes Mal zurück. */
+const isEditing = () => { const a = document.activeElement; return !!(a && a.closest && a.closest("#view") && a.matches("textarea, input")); };
+function scheduleRender(){
+  if (isEditing()){ pendingRender = true; return; }
+  if (rq) return; rq = requestAnimationFrame(()=>{ rq=0; render(); });
+}
+document.addEventListener("focusout", e => {
+  if (!e.target.closest || !e.target.closest("#view")) return;
+  setTimeout(() => { if (pendingRender && !isEditing()){ pendingRender = false; render(); } }, 400);
+});
 function bind(coll, apply){ db.collection(coll).onSnapshot(list => { apply(list); scheduleRender(); }); }
 const byAt = (a,b)=>(a.at||0)-(b.at||0);
 
