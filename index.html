@@ -439,7 +439,7 @@ function viewKasten(){
   for (const f of fns){
     const sols = S.solutions.filter(s=>s.fn===f.id);
     h += `<tr><th class="fn"><div class="row" style="justify-content:space-between;flex-wrap:nowrap;align-items:flex-start">
-      <input class="txt fnname" id="fn-${esc(f.id)}" data-fn="${esc(f.id)}" value="${esc(drafts["fn-"+f.id] ?? f.name)}" ${dis()} style="border:0;background:transparent;padding:0;font:600 18px/1.2 var(--f-display)">
+      <textarea class="txt fnname" id="fn-${esc(f.id)}" data-fn="${esc(f.id)}" rows="2" ${dis()} style="border:0;background:transparent;padding:0;font:600 18px/1.2 var(--f-display);resize:none;min-height:0;overflow:hidden">${esc(drafts["fn-"+f.id] ?? f.name)}</textarea>
       <button class="x" title="Teilfunktion löschen" data-act="delFn" data-id="${esc(f.id)}" ${dis()}>×</button></div>
       ${sendTo==="delFn-"+f.id ? `<div class="stack" style="gap:6px;margin-top:8px"><span style="font-size:13px">Zeile mit ${sols.length} Lösung(en) löschen?</span><span class="row"><button class="btn small" data-act="delFnYes" data-id="${esc(f.id)}">Löschen</button><button class="btn small ghost" data-act="cancel">Nein</button></span></div>`:""}
       </th><td><div class="chips">`;
