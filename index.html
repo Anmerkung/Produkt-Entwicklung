@@ -399,7 +399,7 @@ function sheetTable(sh, uptoRound, editable){
 
 function ideaCell(id, d, withActions){
   if (!d || !d.text || !d.text.trim()) return `<span class="muted">–</span>`;
-  const used = S.solutions.some(s=>s.fromIdea===id);
+  const used = S.solutions.some(s=>s.fromIdea===id || (s.fromIdeas||[]).includes(id));
   let acts = "";
   if (withActions){
     if (sendTo === id){
