@@ -266,6 +266,7 @@ function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; cle
 function onErr(e){ console.error(e); toast("Speichern hat nicht geklappt. Prüfe deine Internetverbindung."); }
 function showBanner(t){ const b=$("#banner"); b.textContent=t; b.hidden=!t; }
 function write(path, fn){ chains[path] = (chains[path]||Promise.resolve()).then(fn).catch(onErr); return chains[path]; }
+const autosize = el => { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; };
 function debounced(key, ms, fn){ clearTimeout(timers[key]); timers[key]=setTimeout(fn, ms); }
 
 const mySeat = () => { for (let i=0;i<SEATS;i++) if (S.seats["s"+i]?.uid === me) return i; return null; };
@@ -283,6 +284,7 @@ function render(){
   const focus = ae && ae.id && ae.id !== "joinName" ? {id:ae.id, s:ae.selectionStart, e:ae.selectionEnd} : null;
   const v = $("#view");
   v.innerHTML = tab==="635" ? view635() : tab==="ideen" ? viewIdeen() : tab==="kasten" ? viewKasten() : viewVote();
+  v.querySelectorAll("textarea[data-fn]").forEach(autosize);
   if (focus){ const el=document.getElementById(focus.id); if (el){ el.focus(); try{ el.setSelectionRange(focus.s, focus.e); }catch(e){} } }
   const seat = mySeat();
   $("#joinForm").hidden = !!myName;
@@ -439,7 +441,7 @@ function viewKasten(){
   for (const f of fns){
     const sols = S.solutions.filter(s=>s.fn===f.id);
     h += `<tr><th class="fn"><div class="row" style="justify-content:space-between;flex-wrap:nowrap;align-items:flex-start">
-      <textarea class="txt fnname" id="fn-${esc(f.id)}" data-fn="${esc(f.id)}" rows="2" ${dis()} style="border:0;background:transparent;padding:0;font:600 18px/1.2 var(--f-display);resize:none;min-height:0;overflow:hidden">${esc(drafts["fn-"+f.id] ?? f.name)}</textarea>
+      <textarea class="txt fnname" id="fn-${esc(f.id)}" data-fn="${esc(f.id)}" rows="3" ${dis()} style="border:0;background:transparent;padding:0;font:600 18px/1.2 var(--f-display);resize:none;min-height:0;overflow:hidden;width:100%">${esc(drafts["fn-"+f.id] ?? f.name)}</textarea>
       <button class="x" title="Teilfunktion löschen" data-act="delFn" data-id="${esc(f.id)}" ${dis()}>×</button></div>
       ${sendTo==="delFn-"+f.id ? `<div class="stack" style="gap:6px;margin-top:8px"><span style="font-size:13px">Zeile mit ${sols.length} Lösung(en) löschen?</span><span class="row"><button class="btn small" data-act="delFnYes" data-id="${esc(f.id)}">Löschen</button><button class="btn small ghost" data-act="cancel">Nein</button></span></div>`:""}
       </th><td><div class="chips">`;
@@ -617,7 +619,7 @@ document.addEventListener("input", e => {
   } else if (t.id==="problem"){
     drafts.problem=t.value; debounced("problem", 900, ()=>{ const v=drafts.problem; setState({problem:v}).then(()=>{ if (drafts.problem===v) delete drafts.problem; }); });
   } else if (t.dataset.fn){
-    const fid=t.dataset.fn, key="fn-"+fid; drafts[key]=t.value;
+    autosize(t); const fid=t.dataset.fn, key="fn-"+fid; drafts[key]=t.value;
     debounced(key, 800, ()=>{ const f=S.functions.find(x=>x.id===fid); if (!f) return; const v=drafts[key].trim(); if (!v) return;
       write("functions/"+fid, async()=>{ await db.doc("functions/"+fid).set({name:v, order:f.order??0}); if (drafts[key]?.trim()===v) delete drafts[key]; }); });
   } else if (t.id && (t.id.startsWith("add-") || t.id==="newFn" || t.id==="newCombo")) drafts[t.id]=t.value;
